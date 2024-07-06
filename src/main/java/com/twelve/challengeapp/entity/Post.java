@@ -1,8 +1,6 @@
 package com.twelve.challengeapp.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -17,6 +15,10 @@ import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @Table(name = "post")
 @Entity
@@ -60,6 +62,21 @@ public class Post extends Timestamped {
     public void addComment(Comment comment) {
         this.comments.add(comment);
         comment.setPost(this);
+    }
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Like> likes = new HashSet<>();
+
+    public int getLikeCount() {
+        return likes.size();
+    }
+
+    public boolean addLike(User user) {
+        return likes.add(new Like(user, this));
+    }
+
+    public boolean removeLike(User user) {
+        return likes.removeIf(like -> like.getUser().equals(user));
     }
 
     public void removeComment(Comment comment) {
