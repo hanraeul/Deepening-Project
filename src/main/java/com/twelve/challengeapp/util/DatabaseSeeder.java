@@ -15,7 +15,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 
-	@Value("${admin-password}")
+	@Value("@qwer0828")
 	private String adminPassword;
 
 	public DatabaseSeeder(UserRepository userRepository, PasswordEncoder passwordEncoder) {

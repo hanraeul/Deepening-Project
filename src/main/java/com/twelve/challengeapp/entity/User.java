@@ -19,7 +19,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Table(name = "users")
+@Table(name = "\"users\"")
 @Entity
 @Getter
 @Builder
@@ -87,7 +87,7 @@ public class User {
 
 	public void removePost(Post post) {
 		posts.remove(post);
-		post.setUser(null);
+		post.setUser(this);
 	}
 
 	public void addPasswordRecord(UserPasswordRecord record) {

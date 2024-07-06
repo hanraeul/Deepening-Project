@@ -1,87 +1,72 @@
 package com.twelve.challengeapp.entity;
 
-import java.util.*;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
-@Table(name = "post")
 @Entity
+@Table(name = "post")
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Post extends Timestamped {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String title;
     private String content;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
-
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
-    @Builder
-    public Post(Long id, String title, String content) {
-        this.id = id;
-        this.title = title;
-        this.content = content;
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostLike> postLikes = new ArrayList<>();
+
+    @Column(name = "like_count")
+    private int likeCount; // 좋아요 개수 나타내는 필드
+
+    public void setLikeCount(int likeCount) {
+        this.likeCount = likeCount;
     }
 
     public void update(String title, String content) {
         this.title = title;
         this.content = content;
     }
-
     void setUser(User user) {
         this.user = user;
         if (user != null) {
             user.getPosts().add(this);
         }
     }
-
     public void addComment(Comment comment) {
         this.comments.add(comment);
         comment.setPost(this);
     }
-
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Like> likes = new HashSet<>();
-
-    public int getLikeCount() {
-        return likes.size();
-    }
-
-    public boolean addLike(User user) {
-        return likes.add(new Like(user, this));
-    }
-
-    public boolean removeLike(User user) {
-        return likes.removeIf(like -> like.getUser().equals(user));
-    }
-
     public void removeComment(Comment comment) {
         this.comments.remove(comment);
         comment.setPost(null);
+    }
+
+    public void addLike(User user) {
+        this.postLikes.add(new PostLike(user, this));
+        this.likeCount++; // 좋아요 추가 시 좋아요 개수 증가
+    }
+
+    public boolean removeLike(User user) {
+        boolean removed = postLikes.removeIf(like -> like.getUser().equals(user));
+        if (removed) {
+            this.likeCount--; // 좋아요 삭제 시 좋아요 개수 감소
+        }
+        return removed;
     }
 
     @Override
@@ -94,10 +79,8 @@ public class Post extends Timestamped {
                 Objects.equals(content, post.content) &&
                 Objects.equals(user, post.user);
     }
-
     @Override
     public int hashCode() {
         return Objects.hash(id, title, content, user);
     }
-
 }
